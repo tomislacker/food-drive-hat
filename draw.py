@@ -239,3 +239,9 @@ if __name__ == '__main__':
     ))
 
     winners = data.draw(args['--prizes'], args['--one-prize'])
+    log.critical("Winners:")
+    for prize_index, winner in enumerate(winners):
+        log.critical("{prize_num}. {name}".format(
+            prize_num=prize_index + 1,
+            name=winner.name
+        ))
