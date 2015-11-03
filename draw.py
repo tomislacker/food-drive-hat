@@ -58,8 +58,7 @@ class LotteryEntry(object):
 
 
 class LotteryWinner(object):
-    def __init__(self, pick, entry):
-        self.pick = pick
+    def __init__(self, entry):
         self.entry = entry
 
     @property
@@ -71,12 +70,7 @@ class LotteryWinner(object):
         return self.entry.weight
 
     def __repr__(self):
-        return "<{cls} name='{name}' weight={weight}, pick={pick}>".format(
-            cls=self.__class__.__name__,
-            name=self.entry.name,
-            weight=self.entry.weight,
-            pick=self.pick
-        )
+        return repr(self.entry)
 
     def __str__(self):
         return repr(self)
@@ -159,15 +153,15 @@ class LotteryData(LogProducer):
             one_prize="Yes" if one_prize_only else "No"
         ))
 
+        weight_ring = self._generate_weight_ring()
+        self._log.debug("Weight Ring: {ring}".format(ring=weight_ring))
         winners = []
         winner_names = []
 
         weight_size = self.entry_weight
         for prize_num in range(count):
             while True:
-                weight_spot = random.randint(1, weight_size)
-                self._log.debug("Picked {spot}".format(spot=weight_spot))
-                entry = self._entry_by_weight_spot(weight_spot)
+                entry = random.choice(weight_ring)
 
                 if one_prize_only and entry.name in winner_names:
                     # This entry cannot win another prize
@@ -177,22 +171,13 @@ class LotteryData(LogProducer):
                         ))
                     continue
 
-                winning_entry = LotteryWinner(weight_spot, entry)
+                winning_entry = LotteryWinner(entry)
                 self._log.info("Winner: {winner}".format(winner=winning_entry))
                 winners.append(winning_entry)
                 winner_names.append(winning_entry.name)
                 break
 
         return winners
-
-    def _entry_by_weight_spot(self, spot):
-        weight_allocated = 0
-        for name, entry in self._entries.items():
-            weight_allocated += entry.weight
-            if weight_allocated <= spot:
-                break
-
-        return entry
 
     @property
     def entry_count(self):
@@ -204,6 +189,14 @@ class LotteryData(LogProducer):
         for name, entry in self._entries.items():
             total_weight += entry.weight
         return total_weight
+
+    def _generate_weight_ring(self):
+        weight_ring = []
+        for name, entry in self._entries.items():
+            for i in range(entry.weight):
+                weight_ring.append(entry)
+
+        return weight_ring
 
     def log_entries(self):
         for name, entry in self._entries.items():
