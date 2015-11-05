@@ -1,0 +1,6 @@
+Timestamp,Username,Who is donating?,How much money are they donating?,How many food items are they donating?
+now,admin,PersonA,1,0
+now,admin,PersonA,,1
+now,admin,PersonB,1,1
+now,admin,PersonC,4,
+now,admin,PersonD,,6
